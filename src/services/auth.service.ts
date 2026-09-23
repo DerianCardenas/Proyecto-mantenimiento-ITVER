@@ -1,6 +1,6 @@
 import { ref } from 'vue'
-import type { User, LoginPayload, LoginResponse } from '@/types'
-import { post } from './api'
+import type { User, LoginPayload, LoginResponse, RegisterPayload } from '@/types'
+import { post, get } from './api'
 
 export const useAuthService = () => {
   const login = async (credentials: LoginPayload): Promise<LoginResponse> => {
@@ -10,8 +10,8 @@ export const useAuthService = () => {
     return data
   }
 
-  const register = async (data: Partial<User>) => {
-    return post('/auth/register', data)
+  const register = async (data: RegisterPayload) => {
+    return post<User>('/auth/register', data)
   }
 
   const getCurrentUser = async (): Promise<User> => {

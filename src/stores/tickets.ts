@@ -1,27 +1,33 @@
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
-import type { Ticket, TicketDocument } from '@/types'
+import type { Ticket, TicketDocument, TicketFilters } from '@/types'
 import { useTicketService } from '@/services/ticket.service'
 
-interface FilterState {
-  status: string | null
-  priority: string | null
-  building: string | null
-  technician: string | null
-  dateFrom: string | null
-  dateTo: string | null
+export interface FilterState {
+  status?: string | null
+  priority?: string | null
+  buildingName?: string | null
+  technicianName?: string | null
+  dateFrom?: string | null
+  dateTo?: string | null
+  page?: number
+  limit?: number
 }
 
 export const useTicketsStore = defineStore('tickets', () => {
   const tickets = ref<Ticket[]>([])
   const currentTicket = ref<Ticket | null>(null)
+  const total = ref(0)
+  const totalPages = ref(0)
   const filters = ref<FilterState>({
     status: null,
     priority: null,
-    building: null,
-    technician: null,
+    buildingName: null,
+    technicianName: null,
     dateFrom: null,
-    dateTo: null
+    dateTo: null,
+    page: 1,
+    limit: 10,
   })
   const loading = ref(false)
 
@@ -30,11 +36,14 @@ export const useTicketsStore = defineStore('tickets', () => {
     deleteTicket, getStats, uploadDocument, getDocuments
   } = useTicketService()
 
-  async function loadTickets(params?: Record<string, unknown>) {
+  async function loadTickets(params?: TicketFilters | FilterState) {
     loading.value = true
     try {
       const f = params || filters.value
-      tickets.value = await getTickets(f as Record<string, unknown>)
+      const result = await getTickets(f as TicketFilters)
+      tickets.value = result.data ?? []
+      total.value = result.total ?? 0
+      totalPages.value = result.totalPages ?? 0
     } finally {
       loading.value = false
     }
@@ -88,9 +97,13 @@ export const useTicketsStore = defineStore('tickets', () => {
     filters.value = { ...filters.value, ...f }
   }
 
+  async function listDocuments(ticketId: string) {
+    return getDocuments(ticketId)
+  }
+
   return {
-    tickets, currentTicket, filters, loading,
+    tickets, currentTicket, total, totalPages, filters, loading,
     loadTickets, loadTicket, create, update, remove, changeStatus,
-    loadStats, uploadDoc, setFilters, getDocuments
+    loadStats, uploadDoc, setFilters, listDocuments
   }
 })

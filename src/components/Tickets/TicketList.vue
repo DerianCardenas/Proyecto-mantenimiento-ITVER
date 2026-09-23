@@ -18,10 +18,11 @@ const searchQuery = ref('')
 
 const statusOptions = [
   { label: 'Todos', value: '' },
-  { label: 'Abierto', value: 'open' },
+  { label: 'Pendiente', value: 'pending' },
   { label: 'En progreso', value: 'in_progress' },
   { label: 'Resuelto', value: 'resolved' },
-  { label: 'Cerrado', value: 'closed' }
+  { label: 'Cerrado', value: 'closed' },
+  { label: 'Cancelado', value: 'cancelled' }
 ]
 
 const priorityOptions = [
@@ -29,15 +30,15 @@ const priorityOptions = [
   { label: 'Baja', value: 'low' },
   { label: 'Media', value: 'medium' },
   { label: 'Alta', value: 'high' },
-  { label: 'Crítica', value: 'critical' }
+  { label: 'Urgente', value: 'urgent' }
 ]
 
 function applyFilters() {
   const filters: FilterState = {
     status: statusFilter.value || null,
     priority: priorityFilter.value || null,
-    building: buildingFilter.value || null,
-    technician: technicianFilter.value || null
+    buildingName: buildingFilter.value || null,
+    technicianName: technicianFilter.value || null
   }
   ticketsStore.setFilters(filters)
   ticketsStore.loadTickets(filters as any)

@@ -1,27 +1,19 @@
 <script setup lang="ts">
 import { useRouter } from 'vue-router'
-import { useAuth } from '@/composables/useAuth'
-import LoginForm from '@/components/Auth/LoginForm.vue'
-
-const { isAuthenticated } = useAuth()
-const router = useRouter()
-
-onMounted(() => {
-  if (isAuthenticated.value) {
-    router.push({ name: 'Dashboard' })
-  }
-})
 </script>
 
 <template>
-  <div class="register-page flex-center">
-    <RegisterForm @registered="router.push({ name: 'Login' })" />
+  <div class="not-found flex-center flex-column">
+    <h1 class="mb-sm">404</h1>
+    <p class="text-muted mb-lg">La página que buscas no existe.</p>
+    <Button label="Ir al inicio" icon="mdi-home" @click="useRouter().push({ name: 'Dashboard' })" />
   </div>
 </template>
 
 <style scoped>
-.register-page {
+.not-found {
   min-height: 100vh;
-  background: linear-gradient(135deg, #1565c0, #1976d2);
+  text-align: center;
 }
+.not-found h1 { font-size: 96px; color: var(--primary); margin: 0; }
 </style>

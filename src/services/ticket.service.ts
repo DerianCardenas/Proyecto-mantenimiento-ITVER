@@ -1,10 +1,10 @@
 import { ref } from 'vue'
-import type { Ticket, TicketDocument, Building } from '@/types'
-import { get, post, put, del } from './api'
+import type { Ticket, TicketDocument, Building, TicketFilters, StatsResponse } from '@/types'
+import { get, getPaginated, post, put, patch, del } from './api'
 
 export const useTicketService = () => {
-  const getTickets = async (params?: Record<string, unknown>) => {
-    return get<Ticket[]>('/tickets', params)
+  const getTickets = async (params?: TicketFilters) => {
+    return getPaginated<Ticket>('/tickets', params as Record<string, unknown>)
   }
 
   const getTicket = async (id: string) => {
@@ -20,7 +20,7 @@ export const useTicketService = () => {
   }
 
   const updateStatus = async (id: string, status: string) => {
-    return put<Ticket>(`/tickets/${id}/status`, { status })
+    return patch<Ticket>(`/tickets/${id}/status`, { status })
   }
 
   const deleteTicket = async (id: string) => {
@@ -28,15 +28,20 @@ export const useTicketService = () => {
   }
 
   const getStats = async () => {
-    return get<Record<string, number>>('/tickets/stats')
+    return get<StatsResponse>('/tickets/stats')
   }
 
+  // Documents are mounted at /api/documents in the backend
   const uploadDocument = async (ticketId: string, formData: FormData) => {
-    return post<TicketDocument>(`/tickets/${ticketId}/documents`, formData)
+    return post<TicketDocument>(`/documents/${ticketId}`, formData,)
   }
 
   const getDocuments = async (ticketId: string) => {
-    return get<TicketDocument[]>(`/tickets/${ticketId}/documents`)
+    return get<TicketDocument[]>(`/documents/${ticketId}`)
+  }
+
+  const getDownloadUrl = async (fileKey: string) => {
+    return get<{ downloadUrl: string; document: TicketDocument }>(`/documents/download/${encodeURIComponent(fileKey)}`)
   }
 
   const getBuildings = async () => {
@@ -45,6 +50,8 @@ export const useTicketService = () => {
 
   return {
     getTickets, getTicket, createTicket, updateTicket, updateStatus,
-    deleteTicket, getStats, uploadDocument, getDocuments, getBuildings
+    deleteTicket, getStats, uploadDocument, getDocuments, getDownloadUrl, getBuildings
   }
 }
+
+export const ticketService = useTicketService()

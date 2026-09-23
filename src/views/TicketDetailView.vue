@@ -20,10 +20,11 @@ const loading = ref(false)
 const statusChanging = ref(false)
 
 const statusOptions = [
-  { label: 'Abierto', value: 'open' },
+  { label: 'Pendiente', value: 'pending' },
   { label: 'En progreso', value: 'in_progress' },
   { label: 'Resuelto', value: 'resolved' },
-  { label: 'Cerrado', value: 'closed' }
+  { label: 'Cerrado', value: 'closed' },
+  { label: 'Cancelado', value: 'cancelled' }
 ]
 
 async function loadData() {
@@ -31,7 +32,7 @@ async function loadData() {
   try {
     await ticketsStore.loadTicket(String(route.params.id))
     ticket.value = ticketsStore.currentTicket
-    documents.value = await ticketsStore.getDocuments(String(route.params.id))
+    documents.value = await ticketsStore.listDocuments(String(route.params.id))
   } finally {
     loading.value = false
   }
@@ -71,8 +72,8 @@ onMounted(() => { loadData() })
         <div class="col-12 md:col-8">
           <BaseCard title="Información del Ticket" icon="info">
             <div class="detail-grid">
-              <div><strong>Estado:</strong> <span :class="'badge badge-' + (ticket.status === 'open' ? 'warning' : ticket.status === 'resolved' ? 'success' : 'info')">{{ ticket.status }}</span></div>
-              <div><strong>Prioridad:</strong> <span :class="'badge badge-' + (ticket.priority === 'high' || ticket.priority === 'critical' ? 'danger' : ticket.priority === 'medium' ? 'warning' : 'info')">{{ ticket.priority }}</span></div>
+              <div><strong>Estado:</strong> <span :class="'badge badge-' + (ticket.status === 'pending' ? 'warning' : ticket.status === 'resolved' ? 'success' : 'info')">{{ ticket.status }}</span></div>
+              <div><strong>Prioridad:</strong> <span :class="'badge badge-' + (ticket.priority === 'high' || ticket.priority === 'urgent' ? 'danger' : ticket.priority === 'medium' ? 'warning' : 'info')">{{ ticket.priority }}</span></div>
               <div><strong>Edificio:</strong> {{ ticket.buildingName || 'N/A' }}</div>
               <div><strong>Técnico:</strong> {{ ticket.technicianName || 'No asignado' }}</div>
               <div><strong>Fecha de atención:</strong> {{ ticket.attentionDate || 'Pendiente' }}</div>

@@ -6,7 +6,7 @@ import type { TicketDocument } from '@/types'
 const props = defineProps<{ ticketId: string; documents: TicketDocument[] }>()
 const emit = defineEmits<{(e: 'uploaded'): void }>()
 
-const { uploadDocument } = useTicketService()
+const { uploadDocument, getDownloadUrl } = useTicketService()
 const uploading = ref(false)
 
 async function onFileChange(event: Event) {
@@ -25,6 +25,15 @@ async function onFileChange(event: Event) {
     emit('uploaded')
   } finally {
     uploading.value = false
+  }
+}
+
+async function download(doc: TicketDocument) {
+  try {
+    const { downloadUrl } = await getDownloadUrl(doc.fileKey)
+    window.open(downloadUrl, '_blank')
+  } catch {
+    alert('No se pudo generar la URL de descarga')
   }
 }
 
@@ -56,7 +65,7 @@ function formatSize(bytes: number): string {
         <span class="material-symbols-rounded" style="color: var(--primary);">article</span>
         <span class="text-small">{{ doc.originalName }}</span>
         <span class="text-small text-muted">({{ formatSize(doc.fileSize || 0) }})</span>
-        <Button icon="mdi-download" text small :href="`/api/tickets/${ticketId}/documents/${doc.fileKey}`" :download="doc.originalName" />
+        <Button icon="mdi-download" @click="download(doc)" />
       </div>
     </div>
 

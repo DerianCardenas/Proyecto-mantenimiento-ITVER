@@ -1,10 +1,10 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
 import { useTicketsStore } from '@/stores/tickets'
 import { useTicketService } from '@/services/ticket.service'
 import BaseCard from '@/components/common/BaseCard.vue'
 import BaseButton from '@/components/common/BaseButton.vue'
-import type { Ticket } from '@/types'
+import type { Ticket, TicketStatus, TicketPriority } from '@/types'
 
 const props = defineProps<{ ticketId?: string }>()
 const emit = defineEmits<{(e: 'saved'): void; (e: 'cancel'): void }>()
@@ -18,11 +18,11 @@ const formData = ref({
   buildingId: null as number | null,
   buildingName: '',
   technicianName: '',
-  attentionDate: null as string | null,
+  attentionDate: null as Date | null,
   recommendations: '',
   observations: '',
-  priority: 'medium' as string,
-  status: 'open' as string
+  priority: 'medium' as TicketPriority,
+  status: 'pending' as TicketStatus
 })
 const buildings = ref<any[]>([])
 const errors = ref<Record<string, string>>({})
@@ -33,14 +33,15 @@ const priorityOptions = [
   { label: 'Baja', value: 'low' },
   { label: 'Media', value: 'medium' },
   { label: 'Alta', value: 'high' },
-  { label: 'Crítica', value: 'critical' }
+  { label: 'Urgente', value: 'urgent' }
 ]
 
 const statusOptions = [
-  { label: 'Abierto', value: 'open' },
+  { label: 'Pendiente', value: 'pending' },
   { label: 'En progreso', value: 'in_progress' },
   { label: 'Resuelto', value: 'resolved' },
-  { label: 'Cerrado', value: 'closed' }
+  { label: 'Cerrado', value: 'closed' },
+  { label: 'Cancelado', value: 'cancelled' }
 ]
 
 async function loadBuildings() {
@@ -58,7 +59,7 @@ async function loadExistingTicket() {
       buildingId: t.buildingId,
       buildingName: t.buildingName || '',
       technicianName: t.technicianName || '',
-      attentionDate: t.attentionDate,
+      attentionDate: t.attentionDate ? new Date(t.attentionDate) : null,
       recommendations: t.recommendations || '',
       observations: t.observations || '',
       priority: t.priority,
@@ -76,14 +77,21 @@ function validate(): boolean {
   return Object.keys(e).length === 0
 }
 
+function toPayload() {
+  return {
+    ...formData.value,
+    attentionDate: formData.value.attentionDate ? formData.value.attentionDate.toISOString() : null
+  }
+}
+
 async function onSubmit() {
   if (!validate()) return
   loading.value = true
   try {
     if (isEdit.value && props.ticketId) {
-      await ticketsStore.update(props.ticketId, formData.value)
+      await ticketsStore.update(props.ticketId, toPayload())
     } else {
-      await ticketsStore.create(formData.value)
+      await ticketsStore.create(toPayload())
     }
     emit('saved')
   } finally {
@@ -93,7 +101,7 @@ async function onSubmit() {
 
 onMounted(() => {
   loadBuildings()
-  if (props.ticketId && isEdit.value) loadExistingTicket()
+  if (props.ticketId) loadExistingTicket()
 })
 </script>
 
@@ -127,7 +135,7 @@ onMounted(() => {
       <div class="grid grid-nocol gutters gap-md">
         <div>
           <label>Fecha de Atención</label>
-          <InputDate v-model="formData.attentionDate" class="w-full" />
+          <DatePicker v-model="formData.attentionDate" class="w-full" dateFormat="dd/mm/yy" />
         </div>
         <div>
           <label>Prioridad</label>

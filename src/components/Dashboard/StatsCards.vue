@@ -6,10 +6,10 @@ const ticketsStore = useTicketsStore()
 
 const stats = computed(() => ({
   total: ticketsStore.tickets.length,
-  pending: ticketsStore.tickets.filter(t => t.status === 'open').length,
+  pending: ticketsStore.tickets.filter(t => t.status === 'pending').length,
   resolved: ticketsStore.tickets.filter(t => t.status === 'resolved').length,
   thisMonth: ticketsStore.tickets.filter(t => {
-    const d = new Date(ticket.createdAt)
+    const d = new Date(t.createdAt)
     const now = new Date()
     return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear()
   }).length
