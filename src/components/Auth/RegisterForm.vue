@@ -1,100 +1,14 @@
 <script setup lang="ts">
-import { ref } from 'vue'
-import { useRouter } from 'vue-router'
-import { useAuthStore } from '@/stores/auth'
-
-const emit = defineEmits<{ (e: 'registered'): void }>()
-
-const router = useRouter()
-const authStore = useAuthStore()
-
-const formData = ref({
-  username: '',
-  email: '',
-  password: '',
-  fullName: '',
-  role: 'user'
-})
-const errors = ref<Record<string, string>>({})
-const loading = ref(false)
-
-function validate(): boolean {
-  const e: Record<string, string> = {}
-  if (!formData.value.username.trim()) e.username = 'El nombre de usuario es obligatorio'
-  if (!formData.value.email.trim()) e.email = 'El email es obligatorio'
-  else if (!/\S+@\S+\.\S+/.test(formData.value.email)) e.email = 'Email inválido'
-  if (!formData.value.password) e.password = 'La contraseña es obligatoria'
-  else if (formData.value.password.length < 6) e.password = 'Mínimo 6 caracteres'
-  if (!formData.value.fullName.trim()) e.fullName = 'El nombre completo es obligatorio'
-  errors.value = e
-  return Object.keys(e).length === 0
-}
-
-async function onSubmit() {
-  if (!validate()) return
-  loading.value = true
-  try {
-    await authStore.register(formData.value)
-    emit('registered')
-    router.push({ name: 'Login' })
-  } catch {
-    // Error handled by store
-  } finally {
-    loading.value = false
-  }
-}
+import {ref} from 'vue'
+import {useAuthStore} from '@/stores/auth'
+const emit=defineEmits<{(e:'registered'):void}>(),authStore=useAuthStore()
+const formData=ref({username:'',email:'',password:'',fullName:'',role:'user'}),errors=ref<Record<string,string>>({}),loading=ref(false)
+function validate(){const e:Record<string,string>={};if(!formData.value.username.trim())e.username='El nombre de usuario es obligatorio';if(!formData.value.email.trim())e.email='El correo electrónico es obligatorio';else if(!/\S+@\S+\.\S+/.test(formData.value.email))e.email='Ingresa un correo electrónico válido';if(!formData.value.password)e.password='La contraseña es obligatoria';else if(formData.value.password.length<6)e.password='Usa al menos 6 caracteres';if(!formData.value.fullName.trim())e.fullName='El nombre completo es obligatorio';errors.value=e;return !Object.keys(e).length}
+async function onSubmit(){if(!validate())return;loading.value=true;try{await authStore.register(formData.value);emit('registered')}catch{/* Error gestionado por autenticación. */}finally{loading.value=false}}
 </script>
-
-<template>
-  <div class="auth-form">
-    <h2 class="text-center text-xl mb-lg">Registro</h2>
-    <form @submit.prevent="onSubmit" class="flex flex-column gap-md">
-      <div>
-        <label>Nombre de usuario</label>
-        <InputText v-model="formData.username" class="w-full" placeholder="Usuario" />
-        <span v-if="errors.username" class="text-small text-danger">{{ errors.username }}</span>
-      </div>
-      <div>
-        <label>Nombre completo</label>
-        <InputText v-model="formData.fullName" class="w-full" placeholder="Nombre completo" />
-        <span v-if="errors.fullName" class="text-small text-danger">{{ errors.fullName }}</span>
-      </div>
-      <div>
-        <label>Email</label>
-        <InputText v-model="formData.email" type="email" class="w-full" placeholder="email@example.com" />
-        <span v-if="errors.email" class="text-small text-danger">{{ errors.email }}</span>
-      </div>
-      <div>
-        <label>Contraseña</label>
-        <Password v-model="formData.password" class="w-full" placeholder="mínimo 6 caracteres" :toggleMask="true" />
-        <span v-if="errors.password" class="text-small text-danger">{{ errors.password }}</span>
-      </div>
-      <div>
-        <label>Rol</label>
-        <Dropdown v-model="formData.role" :options="['user', 'technician', 'admin']" class="w-full" />
-      </div>
-      <Button :label="loading ? 'Registrando...' : 'Registrarse'" type="submit" severity="primary" :loading="loading" class="mt-sm" />
-      <p class="text-center text-small text-muted">
-        ¿Ya tienes cuenta? <RouterLink to="/login">Inicia sesión</RouterLink>
-      </p>
-    </form>
-  </div>
-</template>
-
-<style scoped>
-.auth-form {
-  max-width: 400px;
-  margin: 0 auto;
-  padding: var(--spacing-lg);
-  background: var(--white);
-  border-radius: var(--border-radius-md);
-  box-shadow: var(--shadow-md);
-}
-.auth-form label {
-  display: block;
-  font-size: var(--font-size-sm);
-  font-weight: 600;
-  margin-bottom: 4px;
-  color: var(--gray-700);
-}
-</style>
+<template><section class="auth-form"><div class="auth-mobile-brand"><span class="brand-mark"><i class="fa-solid fa-screwdriver-wrench" aria-hidden="true"></i></span>SGM-ITVER</div><div class="auth-form-header"><h2>Crear cuenta</h2><p>Completa tus datos para comenzar.</p></div>
+<form class="flex flex-column" @submit.prevent="onSubmit"><div><label for="register-username">Nombre de usuario</label><InputText id="register-username" v-model="formData.username" autocomplete="username" class="w-full" placeholder="Usuario" :aria-invalid="!!errors.username"/><span v-if="errors.username" class="field-error" role="alert">{{errors.username}}</span></div>
+<div><label for="register-name">Nombre completo</label><InputText id="register-name" v-model="formData.fullName" autocomplete="name" class="w-full" placeholder="Nombre completo" :aria-invalid="!!errors.fullName"/><span v-if="errors.fullName" class="field-error" role="alert">{{errors.fullName}}</span></div>
+<div><label for="register-email">Correo electrónico</label><InputText id="register-email" v-model="formData.email" type="email" autocomplete="email" class="w-full" placeholder="nombre@itver.edu.mx" :aria-invalid="!!errors.email"/><span v-if="errors.email" class="field-error" role="alert">{{errors.email}}</span></div>
+<div><label for="register-password">Contraseña</label><Password inputId="register-password" v-model="formData.password" autocomplete="new-password" class="w-full" placeholder="Mínimo 6 caracteres" :toggleMask="true" :feedback="false" :aria-invalid="!!errors.password"/><span v-if="errors.password" class="field-error" role="alert">{{errors.password}}</span></div>
+<div><label for="register-role">Rol</label><Dropdown id="register-role" v-model="formData.role" :options="['user','technician','admin']" class="w-full"/></div><Button :label="loading?'Creando cuenta…':'Crear cuenta'" type="submit" severity="primary" :loading="loading"/><p class="auth-switch">¿Ya tienes una cuenta? <RouterLink to="/login">Iniciar sesión</RouterLink></p></form></section></template>

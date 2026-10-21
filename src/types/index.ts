@@ -5,6 +5,7 @@ export interface User {
   role: string
   fullName: string
   isActive: boolean
+  mustChangePassword: boolean
   createdAt?: string
 }
 

@@ -20,10 +20,16 @@ export const useAuthService = () => {
     return user
   }
 
+  const changePassword = async (password: string): Promise<User> => {
+    const user = await post<User>('/auth/change-password', { password })
+    localStorage.setItem('user', JSON.stringify(user))
+    return user
+  }
+
   const logout = () => {
     localStorage.removeItem('token')
     localStorage.removeItem('user')
   }
 
-  return { login, register, getCurrentUser, logout }
+  return { login, register, getCurrentUser, changePassword, logout }
 }

@@ -6,8 +6,9 @@ import { useAuthService } from '@/services/auth.service'
 export const useAuthStore = defineStore('auth', () => {
   const user = ref<User | null>(null)
   const isAuthenticated = ref(false)
+  const initialized = ref(false)
 
-  const { login: authLogin, register: authRegister, logout: authLogout, getCurrentUser } = useAuthService()
+  const { login: authLogin, register: authRegister, logout: authLogout, getCurrentUser, changePassword: authChangePassword } = useAuthService()
 
   const userRole = computed(() => user.value?.role ?? '')
   const isAdmin = computed(() => user.value?.role === 'admin')
@@ -17,6 +18,7 @@ export const useAuthStore = defineStore('auth', () => {
     const response = await authLogin(credentials)
     user.value = response.user
     isAuthenticated.value = true
+    initialized.value = true
   }
 
   async function register(data: RegisterPayload) {
@@ -28,21 +30,34 @@ export const useAuthStore = defineStore('auth', () => {
     authLogout()
     user.value = null
     isAuthenticated.value = false
+    initialized.value = true
   }
 
-  async function loadUser() {
+  async function loadUser(force = false) {
+    if (initialized.value && !force) return
+    if (!localStorage.getItem('token')) {
+      user.value = null
+      isAuthenticated.value = false
+      initialized.value = true
+      return
+    }
     try {
       const u = await getCurrentUser()
       user.value = u
       isAuthenticated.value = true
     } catch {
-      const stored = localStorage.getItem('user')
-      if (stored) {
-        user.value = JSON.parse(stored)
-        isAuthenticated.value = true
-      }
+      logout()
+    } finally {
+      initialized.value = true
     }
   }
 
-  return { user, isAuthenticated, userRole, isAdmin, isTechnician, login, register, logout, loadUser }
+  async function changePassword(password: string) {
+    const updatedUser = await authChangePassword(password)
+    user.value = updatedUser
+    isAuthenticated.value = true
+    initialized.value = true
+  }
+
+  return { user, isAuthenticated, initialized, userRole, isAdmin, isTechnician, login, register, logout, loadUser, changePassword }
 })

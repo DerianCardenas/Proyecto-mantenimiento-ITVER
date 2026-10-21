@@ -1,136 +1,33 @@
 <script setup lang="ts">
-import { ref, onMounted, watch } from 'vue'
-import { useRouter } from 'vue-router'
-import { useTicketsStore } from '@/stores/tickets'
-import BaseCard from '@/components/common/BaseCard.vue'
+import {ref,computed,onMounted} from 'vue'
+import {useRouter} from 'vue-router'
+import {useToast} from 'primevue/usetoast'
+import {useTicketsStore} from '@/stores/tickets'
+import {useConfirmDialog} from '@/composables/useConfirmDialog'
 import BaseButton from '@/components/common/BaseButton.vue'
 import TicketCard from '@/components/Tickets/TicketCard.vue'
-import type { FilterState } from '@/stores/tickets'
-
-const ticketsStore = useTicketsStore()
-const router = useRouter()
-
-const statusFilter = ref('')
-const priorityFilter = ref('')
-const buildingFilter = ref('')
-const technicianFilter = ref('')
-const searchQuery = ref('')
-
-const statusOptions = [
-  { label: 'Todos', value: '' },
-  { label: 'Pendiente', value: 'pending' },
-  { label: 'En progreso', value: 'in_progress' },
-  { label: 'Resuelto', value: 'resolved' },
-  { label: 'Cerrado', value: 'closed' },
-  { label: 'Cancelado', value: 'cancelled' }
-]
-
-const priorityOptions = [
-  { label: 'Todas', value: '' },
-  { label: 'Baja', value: 'low' },
-  { label: 'Media', value: 'medium' },
-  { label: 'Alta', value: 'high' },
-  { label: 'Urgente', value: 'urgent' }
-]
-
-function applyFilters() {
-  const filters: FilterState = {
-    status: statusFilter.value || null,
-    priority: priorityFilter.value || null,
-    buildingName: buildingFilter.value || null,
-    technicianName: technicianFilter.value || null
-  }
-  ticketsStore.setFilters(filters)
-  ticketsStore.loadTickets(filters as any)
-}
-
-function handleNew() {
-  router.push({ name: 'TicketNew' })
-}
-
-function handleEdit(ticketId: string) {
-  router.push({ name: 'TicketEdit', params: { id: ticketId } })
-}
-
-function handleView(ticketId: string) {
-  router.push({ name: 'TicketDetail', params: { id: ticketId } })
-}
-
-function handleDelete(ticketId: string) {
-  if (confirm('¿Seguro que deseas eliminar este ticket?')) {
-    ticketsStore.remove(ticketId)
-  }
-}
-
-onMounted(() => {
-  ticketsStore.loadTickets()
-})
+import type {FilterState} from '@/stores/tickets'
+const ticketsStore=useTicketsStore(),router=useRouter(),toast=useToast(),{confirm}=useConfirmDialog()
+const statusFilter=ref(''),priorityFilter=ref(''),buildingFilter=ref(''),technicianFilter=ref(''),searchQuery=ref('')
+const statusOptions=[{label:'Todos los estados',value:''},{label:'Pendiente',value:'pending'},{label:'En progreso',value:'in_progress'},{label:'Resuelto',value:'resolved'},{label:'Cerrado',value:'closed'},{label:'Cancelado',value:'cancelled'}]
+const priorityOptions=[{label:'Todas las prioridades',value:''},{label:'Baja',value:'low'},{label:'Media',value:'medium'},{label:'Alta',value:'high'},{label:'Urgente',value:'urgent'}]
+const visibleTickets=computed(()=>{const q=searchQuery.value.trim().toLocaleLowerCase('es-MX');return q?ticketsStore.tickets.filter(t=>[t.title,t.description,t.buildingName||'',t.technicianName||''].some(v=>v.toLocaleLowerCase('es-MX').includes(q))):ticketsStore.tickets})
+function applyFilters(){const f:FilterState={status:statusFilter.value||null,priority:priorityFilter.value||null,buildingName:buildingFilter.value||null,technicianName:technicianFilter.value||null};ticketsStore.setFilters(f);ticketsStore.loadTickets(f as any)}
+function resetFilters(){statusFilter.value='';priorityFilter.value='';buildingFilter.value='';technicianFilter.value='';searchQuery.value='';applyFilters()}
+async function handleDelete(id:string){const accepted=await confirm({title:'Eliminar ticket',message:'Esta acción eliminará el ticket y sus datos asociados. ¿Deseas continuar?',confirmLabel:'Eliminar ticket',danger:true});if(!accepted)return;try{await ticketsStore.remove(id);toast.add({severity:'success',summary:'Ticket eliminado',life:3000})}catch(error){toast.add({severity:'error',summary:'No se pudo eliminar el ticket',detail:error instanceof Error?error.message:'Inténtalo de nuevo.',life:4500})}}
+onMounted(()=>ticketsStore.loadTickets())
 </script>
-
-<template>
-  <div class="ticket-list-page">
-    <div class="flex-between mb-md">
-      <h2>Tickets</h2>
-      <BaseButton label="Nuevo Ticket" icon="mdi-plus" severity="primary" @click="handleNew" />
-    </div>
-
-    <BaseCard class="mb-md">
-      <template #icon>
-        <span class="material-symbols-rounded">filter_list</span>
-      </template>
-      <div class="filters-grid">
-        <div>
-          <label class="text-small text-muted">Estado</label>
-          <Dropdown v-model="statusFilter" :options="statusOptions" optionLabel="label" optionValue="value" class="w-full" @change="applyFilters" />
-        </div>
-        <div>
-          <label class="text-small text-muted">Prioridad</label>
-          <Dropdown v-model="priorityFilter" :options="priorityOptions" optionLabel="label" optionValue="value" class="w-full" @change="applyFilters" />
-        </div>
-        <div>
-          <label class="text-small text-muted">Edificio</label>
-          <InputText v-model="buildingFilter" placeholder="Buscar..." class="w-full" @input="applyFilters" />
-        </div>
-        <div>
-          <label class="text-small text-muted">Técnico</label>
-          <InputText v-model="technicianFilter" placeholder="Buscar..." class="w-full" @input="applyFilters" />
-        </div>
-      </div>
-    </BaseCard>
-
-    <div v-if="ticketsStore.loading" class="flex-center p-lg">
-      <ProgressSpinner />
-    </div>
-
-    <div v-else-if="ticketsStore.tickets.length === 0" class="text-center p-lg text-muted">
-      <span class="material-symbols-rounded" style="font-size: 48px;">search_off</span>
-      <p class="mt-md">No se encontraron tickets</p>
-    </div>
-
-    <div v-else class="ticket-grid">
-      <TicketCard
-        v-for="ticket in ticketsStore.tickets"
-        :key="ticket.id"
-        :ticket="ticket"
-        @view="handleView"
-        @edit="handleEdit"
-        @delete="handleDelete"
-      />
-    </div>
-  </div>
-</template>
-
-<style scoped>
-.ticket-list-page { padding: var(--spacing-lg); }
-.filters-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-  gap: var(--spacing-md);
-}
-.filters-grid label { display: block; margin-bottom: 4px; }
-.ticket-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-  gap: var(--spacing-md);
-}
-</style>
+<template><section>
+<div class="page-heading"><div><h2>Tickets de mantenimiento</h2><p>Busca solicitudes y filtra por estado, prioridad o responsable.</p></div><div class="page-heading-actions"><BaseButton label="Nuevo ticket" icon="fa-solid fa-plus" severity="primary" @click="router.push({name:'TicketNew'})"/></div></div>
+<section class="base-card filter-panel" aria-label="Filtros de tickets"><div class="filter-toolbar"><div class="filter-fields">
+<div class="filter-field search-field"><label for="ticket-search">Buscar</label><i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i><InputText id="ticket-search" v-model="searchQuery" placeholder="Título, edificio o técnico" class="w-full"/></div>
+<div class="filter-field"><label for="ticket-status">Estado</label><Dropdown id="ticket-status" v-model="statusFilter" :options="statusOptions" optionLabel="label" optionValue="value" class="w-full" @change="applyFilters"/></div>
+<div class="filter-field"><label for="ticket-priority">Prioridad</label><Dropdown id="ticket-priority" v-model="priorityFilter" :options="priorityOptions" optionLabel="label" optionValue="value" class="w-full" @change="applyFilters"/></div>
+<div class="filter-field"><label for="ticket-building">Edificio</label><InputText id="ticket-building" v-model="buildingFilter" placeholder="Cualquier edificio" class="w-full" @input="applyFilters"/></div>
+<div class="filter-field"><label for="ticket-technician">Técnico</label><InputText id="ticket-technician" v-model="technicianFilter" placeholder="Cualquier técnico" class="w-full" @input="applyFilters"/></div>
+</div><button class="filter-clear" type="button" @click="resetFilters">Limpiar filtros</button></div></section>
+<div class="results-caption" aria-live="polite">{{visibleTickets.length}} {{visibleTickets.length===1?'ticket encontrado':'tickets encontrados'}}</div>
+<div v-if="ticketsStore.loading" class="empty-state" role="status"><ProgressSpinner/><p class="mt-md">Cargando tickets…</p></div>
+<div v-else-if="!visibleTickets.length" class="empty-state"><i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i><h3>No se encontraron tickets</h3><p>Prueba con otros términos o limpia los filtros para volver a ver todas las solicitudes.</p><button class="filter-clear mt-sm" type="button" @click="resetFilters">Limpiar búsqueda y filtros</button></div>
+<div v-else class="ticket-grid"><TicketCard v-for="ticket in visibleTickets" :key="ticket.id" :ticket="ticket" @view="router.push({name:'TicketDetail',params:{id:$event}})" @edit="router.push({name:'TicketEdit',params:{id:$event}})" @delete="handleDelete"/></div>
+</section></template>
