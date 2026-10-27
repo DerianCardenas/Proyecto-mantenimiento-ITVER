@@ -3,11 +3,15 @@ import {ref,computed,onMounted} from 'vue'
 import {useRouter} from 'vue-router'
 import {useToast} from 'primevue/usetoast'
 import {useTicketsStore} from '@/stores/tickets'
+import {useAuthStore} from '@/stores/auth'
 import {useConfirmDialog} from '@/composables/useConfirmDialog'
 import BaseButton from '@/components/common/BaseButton.vue'
 import TicketCard from '@/components/Tickets/TicketCard.vue'
+import ImportPdfModal from '@/components/Tickets/ImportPdfModal.vue'
 import type {FilterState} from '@/stores/tickets'
-const ticketsStore=useTicketsStore(),router=useRouter(),toast=useToast(),{confirm}=useConfirmDialog()
+const ticketsStore=useTicketsStore(),authStore=useAuthStore(),router=useRouter(),toast=useToast(),{confirm}=useConfirmDialog()
+const showImport=ref(false)
+function onImported(){showImport.value=false;ticketsStore.loadTickets()}
 const statusFilter=ref(''),priorityFilter=ref(''),buildingFilter=ref(''),technicianFilter=ref(''),searchQuery=ref('')
 const statusOptions=[{label:'Todos los estados',value:''},{label:'Pendiente',value:'pending'},{label:'En progreso',value:'in_progress'},{label:'Resuelto',value:'resolved'},{label:'Cerrado',value:'closed'},{label:'Cancelado',value:'cancelled'}]
 const priorityOptions=[{label:'Todas las prioridades',value:''},{label:'Baja',value:'low'},{label:'Media',value:'medium'},{label:'Alta',value:'high'},{label:'Urgente',value:'urgent'}]
@@ -18,7 +22,8 @@ async function handleDelete(id:string){const accepted=await confirm({title:'Elim
 onMounted(()=>ticketsStore.loadTickets())
 </script>
 <template><section>
-<div class="page-heading"><div><h2>Tickets de mantenimiento</h2><p>Busca solicitudes y filtra por estado, prioridad o responsable.</p></div><div class="page-heading-actions"><BaseButton label="Nuevo ticket" icon="fa-solid fa-plus" severity="primary" @click="router.push({name:'TicketNew'})"/></div></div>
+<div class="page-heading"><div><h2>Tickets de mantenimiento</h2><p>Busca solicitudes y filtra por estado, prioridad o responsable.</p></div><div class="page-heading-actions"><BaseButton v-if="authStore.isAdmin" label="Importar PDF" icon="fa-solid fa-file-arrow-up" severity="secondary" @click="showImport=true"/><BaseButton label="Nuevo ticket" icon="fa-solid fa-plus" severity="primary" @click="router.push({name:'TicketNew'})"/></div></div>
+<ImportPdfModal v-if="showImport" @close="showImport=false" @imported="onImported"/>
 <section class="base-card filter-panel" aria-label="Filtros de tickets"><div class="filter-toolbar"><div class="filter-fields">
 <div class="filter-field search-field"><label for="ticket-search">Buscar</label><i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i><InputText id="ticket-search" v-model="searchQuery" placeholder="Título, edificio o técnico" class="w-full"/></div>
 <div class="filter-field"><label for="ticket-status">Estado</label><Dropdown id="ticket-status" v-model="statusFilter" :options="statusOptions" optionLabel="label" optionValue="value" class="w-full" @change="applyFilters"/></div>

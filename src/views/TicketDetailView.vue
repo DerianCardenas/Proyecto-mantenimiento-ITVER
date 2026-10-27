@@ -3,15 +3,18 @@ import {ref,onMounted} from 'vue'
 import {useRouter,useRoute} from 'vue-router'
 import {useToast} from 'primevue/usetoast'
 import {useTicketsStore} from '@/stores/tickets'
+import {useAuthStore} from '@/stores/auth'
 import {useConfirmDialog} from '@/composables/useConfirmDialog'
 import {formatDateOnly,formatDateTime} from '@/utils/dates'
 import BaseLayout from '@/components/common/BaseLayout.vue'
 import BaseButton from '@/components/common/BaseButton.vue'
 import BaseCard from '@/components/common/BaseCard.vue'
 import DocumentUpload from '@/components/Tickets/DocumentUpload.vue'
+import LinkTechnicianModal from '@/components/Tickets/LinkTechnicianModal.vue'
 import type {Ticket,TicketStatus} from '@/types'
-const ticketsStore=useTicketsStore(),router=useRouter(),route=useRoute(),toast=useToast(),{confirm}=useConfirmDialog()
-const ticket=ref<Ticket|null>(null),documents=ref<any[]>([]),loading=ref(false),statusChanging=ref(false)
+const ticketsStore=useTicketsStore(),authStore=useAuthStore(),router=useRouter(),route=useRoute(),toast=useToast(),{confirm}=useConfirmDialog()
+const ticket=ref<Ticket|null>(null),documents=ref<any[]>([]),loading=ref(false),statusChanging=ref(false),showLink=ref(false)
+function onLinked(){showLink.value=false;loadData()}
 const statusOptions:{label:string;value:TicketStatus}[]=[{label:'Pendiente',value:'pending'},{label:'En progreso',value:'in_progress'},{label:'Resuelto',value:'resolved'},{label:'Cerrado',value:'closed'},{label:'Cancelado',value:'cancelled'}]
 const priorityLabels:Record<string,string>={low:'Baja',medium:'Media',high:'Alta',urgent:'Urgente'}
 async function loadData(){loading.value=true;try{await ticketsStore.loadTicket(String(route.params.id));ticket.value=ticketsStore.currentTicket;documents.value=await ticketsStore.listDocuments(String(route.params.id))}finally{loading.value=false}}
@@ -27,9 +30,15 @@ onMounted(loadData)
 <div class="detail-grid"><div><span class="detail-item-label">Estado</span><span :class="['status-chip','is-'+ticket!.status]">{{statusOptions.find(o=>o.value===ticket!.status)?.label}}</span></div><div><span class="detail-item-label">Prioridad</span><span :class="['priority-chip','is-'+ticket!.priority]">{{priorityLabels[ticket!.priority]||ticket!.priority}}</span></div><div><span class="detail-item-label">Edificio</span><span class="detail-item-value">{{ticket!.buildingName||'Sin especificar'}}</span></div><div><span class="detail-item-label">Técnico asignado</span><span class="detail-item-value">{{ticket!.technicianName||'Sin asignar'}}</span></div><div><span class="detail-item-label">Fecha de atención</span><span class="detail-item-value">{{formatDateOnly(ticket!.attentionDate,{day:'numeric',month:'long',year:'numeric'})}}</span></div><div><span class="detail-item-label">Fecha de creación</span><span class="detail-item-value">{{formatDateTime(ticket!.createdAt,{day:'numeric',month:'long',year:'numeric'})}}</span></div></div>
 <div class="detail-description"><h4>Descripción</h4><p>{{ticket!.description}}</p></div><div v-if="ticket!.recommendations" class="detail-description"><h4>Recomendaciones</h4><p>{{ticket!.recommendations}}</p></div><div v-if="ticket!.observations" class="detail-description"><h4>Observaciones</h4><p>{{ticket!.observations}}</p></div>
 </BaseCard>
+<BaseCard title="Técnico asignado" icon="fa-solid fa-user-gear"><div class="link-technician-card"><div><span class="detail-item-label">Técnico</span><span class="detail-item-value">{{ticket!.technicianName||'Sin asignar'}}</span></div><BaseButton v-if="authStore.isAdmin" :label="ticket!.technicianName?'Cambiar técnico':'Vincular técnico'" icon="fa-solid fa-link" severity="secondary" @click="showLink=true"/></div></BaseCard>
 <BaseCard title="Cambiar estado" icon="fa-solid fa-arrow-right-arrow-left"><div class="status-actions"><Button v-for="option in statusOptions" :key="option.value" :label="option.label" :severity="option.value===ticket.status?'primary':'secondary'" :outlined="option.value!==ticket.status" :disabled="statusChanging||option.value===ticket.status" :loading="statusChanging&&option.value!==ticket.status" @click="changeStatus(option.value)"/></div></BaseCard>
 <BaseCard title="Documentos adjuntos" icon="fa-regular fa-folder-open"><DocumentUpload :ticketId="ticket.id" :documents="documents" @uploaded="loadData"/></BaseCard>
 </div>
 <BaseCard title="Resumen" icon="fa-solid fa-list-check"><div class="summary-list"><div class="summary-row"><span>ID del ticket</span><strong>{{ticket!.id}}</strong></div><div class="summary-row"><span>Creado por</span><strong>{{ticket!.createdBy||'No disponible'}}</strong></div><div class="summary-row"><span>Asignado a</span><strong>{{ticket!.technicianName||'Sin asignar'}}</strong></div><div class="summary-row"><span>Última actualización</span><strong>{{formatDateTime(ticket!.updatedAt,{day:'numeric',month:'long',year:'numeric'})}}</strong></div></div></BaseCard>
-</div></section>
+</div>
+<LinkTechnicianModal v-if="showLink" :ticketId="ticket!.id" :initialName="ticket!.technicianName" @close="showLink=false" @linked="onLinked"/>
+</section>
 </BaseLayout></template>
+<style scoped>
+.link-technician-card{display:flex;align-items:center;justify-content:space-between;gap:1rem;flex-wrap:wrap}
+</style>

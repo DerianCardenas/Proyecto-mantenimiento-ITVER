@@ -1,5 +1,4 @@
-import { ref } from 'vue'
-import type { Ticket, TicketDocument, Building, TicketFilters, StatsResponse } from '@/types'
+import type { Ticket, TicketDocument, Building, TicketFilters, StatsResponse, ImportTicketSuggestion } from '@/types'
 import { get, getPaginated, post, put, patch, del } from './api'
 
 export const useTicketService = () => {
@@ -48,9 +47,14 @@ export const useTicketService = () => {
     return get<Building[]>('/buildings')
   }
 
+  // Envía un PDF de solicitud; el backend devuelve los campos sugeridos (no persiste)
+  const importPdf = async (formData: FormData) => {
+    return post<ImportTicketSuggestion>('/tickets/import/parse', formData)
+  }
+
   return {
     getTickets, getTicket, createTicket, updateTicket, updateStatus,
-    deleteTicket, getStats, uploadDocument, getDocuments, getDownloadUrl, getBuildings
+    deleteTicket, getStats, uploadDocument, getDocuments, getDownloadUrl, getBuildings, importPdf
   }
 }
 

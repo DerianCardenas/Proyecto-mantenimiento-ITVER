@@ -13,6 +13,17 @@ api.interceptors.request.use((config) => {
   if (token) {
     config.headers.Authorization = `Bearer ${token}`
   }
+  // Para FormData hay que quitar el Content-Type application/json por defecto:
+  // así Axios/el navegador fijan multipart/form-data con el boundary correcto.
+  // (Con application/json, Axios 1.x serializa el FormData a JSON y el archivo se pierde.)
+  if (typeof FormData !== 'undefined' && config.data instanceof FormData) {
+    const headers = config.headers as unknown as { delete?: (name: string) => void }
+    if (typeof headers?.delete === 'function') {
+      headers.delete('Content-Type')
+    } else {
+      delete (config.headers as Record<string, unknown>)['Content-Type']
+    }
+  }
   return config
 })
 

@@ -88,6 +88,25 @@ export interface PaginatedEnvelope<T> {
   message?: string
 }
 
+// ---- Importación de PDF (solicitud de mantenimiento) ----
+
+export interface ParsedSolicitud {
+  folio: string | null
+  area: string | null
+  solicitante: string | null
+  fecha: string | null
+  categoria: string | null
+  descripcion: string | null
+}
+
+export interface ImportTicketSuggestion {
+  title: string
+  description: string
+  observations: string
+  priority: TicketPriority
+  parsed: ParsedSolicitud
+}
+
 // ---- Filters / stats ----
 
 export interface TicketFilters {

@@ -22,7 +22,7 @@ async function onSubmit(){if(!validate())return;loading.value=true;try{if(isEdit
 onMounted(()=>{loadBuildings();loadTechnicians();if(route.name==='TicketEdit'&&route.params.id)loadExistingTicket()})
 </script>
 <template><BaseLayout><section class="form-page">
-<div class="page-heading"><div><h2>{{isEdit?'Editar ticket':'Registrar un ticket'}}</h2><p>Completa los datos para documentar y dar seguimiento a la solicitud.</p></div></div>
+<div class="page-heading"><div><h2>{{isEdit?'Editar ticket':'Registrar un ticket'}}</h2><p>Completa los datos para documentar y dar seguimiento a la solicitud.</p></div><div class="page-heading-actions"><BaseButton label="Volver a tickets" icon="fa-solid fa-arrow-left" severity="secondary" type="button" @click="router.push('/tickets')"/></div></div>
 <form class="base-card form-card form-grid" @submit.prevent="onSubmit">
 <div class="form-field form-field--full"><label for="ticket-title">Título <span aria-hidden="true">*</span></label><InputText id="ticket-title" v-model="formData.title" class="w-full" placeholder="Ej. Falla en equipo de climatización" :aria-invalid="!!errors.title"/><span v-if="errors.title" class="field-error" role="alert">{{errors.title}}</span></div>
 <div class="form-field form-field--full"><label for="ticket-description">Descripción <span aria-hidden="true">*</span></label><Textarea id="ticket-description" v-model="formData.description" class="w-full" rows="4" placeholder="Describe el problema y cuándo comenzó." :aria-invalid="!!errors.description"/><span v-if="errors.description" class="field-error" role="alert">{{errors.description}}</span></div>
