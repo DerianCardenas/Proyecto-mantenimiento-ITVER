@@ -1,23 +1,23 @@
 # Tasks: Publicación del frontend en Railway
 
-## Estado general: 🔄 En progreso
+## Estado general: ✅ Completado
 
 ## Frontend
 
 - [x] Confirmar build con `VITE_API_URL` productivo.
-- [ ] Retirar `DATABASE_URL` del servicio frontend.
-- [ ] Configurar `VITE_API_URL` y conservar `VITE_APP_TITLE`.
+- [x] Retirar `DATABASE_URL` del servicio frontend.
+- [x] Configurar `VITE_API_URL` y conservar `VITE_APP_TITLE`.
 - [x] Generar dominio público.
-- [ ] Redeployar con las variables productivas.
-- [ ] Validar raíz, login y recarga de una ruta profunda.
+- [x] Redeployar con las variables productivas.
+- [x] Validar raíz, login y recarga de una ruta profunda.
 
 ## Principal (post-integración)
 
-- [ ] Sincronizar el dominio con `CORS_ORIGIN` del backend.
-- [ ] Verificar el contrato frontend↔backend.
-- [ ] Smoke test del flujo autenticado.
-- [ ] Actualizar spec y plan con hallazgos reales.
-- [ ] Crear commit y enviar `main`.
+- [x] Sincronizar el dominio con `CORS_ORIGIN` del backend.
+- [x] Verificar el contrato frontend↔backend.
+- [x] Smoke test del flujo autenticado.
+- [x] Actualizar spec y plan con hallazgos reales.
+- [x] Crear commit y enviar `main`.
 
 ## Documentación
 

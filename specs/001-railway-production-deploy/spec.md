@@ -48,3 +48,11 @@ No cambian componentes, rutas ni contratos. Vite incrusta `VITE_API_URL` durante
 ## Pendiente condicionado
 
 - Si Railpack no resuelve rutas SPA después del despliegue, se añadirá configuración explícita de servidor estático en una actualización del plan antes de implementarla.
+
+## Resultado de producción
+
+- Frontend activo: `https://hearty-caring-production.up.railway.app`.
+- Bundle productivo: `VITE_API_URL=https://captivating-tenderness-production-6777.up.railway.app/api`.
+- `DATABASE_URL` fue retirada del servicio frontend y `VITE_APP_TITLE` se conservó.
+- La raíz y `/tickets` responden HTTP 200; Railpack resuelve el fallback SPA sin configuración adicional.
+- El login productivo redirige correctamente al cambio obligatorio de contraseña del administrador inicial.

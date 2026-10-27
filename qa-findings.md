@@ -24,3 +24,11 @@
 - CRUD y filtros de tickets.
 - Administración de técnicos.
 - Rutas profundas y fallback SPA en producción.
+
+## Verificación de despliegue 001
+
+- Dominio HTTPS público creado y servicio activo.
+- Bundle verificado con la URL pública correcta de la API.
+- Raíz y ruta profunda `/tickets` respondieron HTTP 200.
+- Login real completado hasta la pantalla de cambio obligatorio de contraseña.
+- Persiste como deuda la advertencia de chunk principal mayor a 500 kB.

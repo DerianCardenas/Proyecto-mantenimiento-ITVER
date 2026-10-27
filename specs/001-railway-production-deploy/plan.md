@@ -42,3 +42,7 @@
 |---------|----------------|
 | Railway frontend | variables, dominio y redeploy |
 | Railway backend | sincronización de `CORS_ORIGIN` |
+
+## Resultado ejecutado
+
+Railpack sirvió correctamente el artefacto Vite y el fallback SPA. El frontend quedó en `https://hearty-caring-production.up.railway.app` y el bundle usa `https://captivating-tenderness-production-6777.up.railway.app/api`.
